@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Box, useApp, useInput } from 'ink';
 import { Section } from '../types';
 import { INITIAL_STATE } from '../game/state';
+import { claimCommission } from '../game/board';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useTerminalSize } from '../hooks/useTerminalSize';
 import NotificationsBar from './NotificationsBar';
@@ -19,6 +20,14 @@ export default function App() {
 
   useGameLoop(setGameState);
 
+  const handleClaim = useCallback((id: string) => {
+    setGameState((state) => {
+      const result = claimCommission(state.board, state.active, id);
+      if (!result) return state;
+      return { ...state, board: result.board, active: result.active };
+    });
+  }, []);
+
   useInput((input) => {
     if (input === '1') setSection('commissions');
     if (input === '2') setSection('agents');
@@ -32,7 +41,14 @@ export default function App() {
       <Box flexDirection="row" flexGrow={1} alignItems="stretch">
         <NavPanel activeSection={section} />
         <Box flexGrow={1} flexDirection="column" borderStyle="single">
-          {section === 'commissions' && <CommissionsPanel />}
+          {section === 'commissions' && (
+            <CommissionsPanel
+              board={gameState.board}
+              active={gameState.active}
+              isActive={section === 'commissions'}
+              onClaim={handleClaim}
+            />
+          )}
           {section === 'agents' && <AgentsPanel />}
           {section === 'settings' && <SettingsPanel />}
         </Box>
