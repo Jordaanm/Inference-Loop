@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Box, useApp, useInput } from 'ink';
 import { Section } from '../types';
+import { INITIAL_STATE } from '../game/state';
+import { useGameLoop } from '../hooks/useGameLoop';
 import NotificationsBar from './NotificationsBar';
 import NavPanel from './NavPanel';
 import Dashboard from './Dashboard';
@@ -11,6 +13,9 @@ import SettingsPanel from './panels/SettingsPanel';
 export default function App() {
   const { exit } = useApp();
   const [section, setSection] = useState<Section>('commissions');
+  const [gameState, setGameState] = useState(INITIAL_STATE);
+
+  useGameLoop(setGameState);
 
   useInput((input) => {
     if (input === '1') setSection('commissions');
@@ -29,7 +34,7 @@ export default function App() {
           {section === 'agents' && <AgentsPanel />}
           {section === 'settings' && <SettingsPanel />}
         </Box>
-        <Dashboard />
+        <Dashboard gameState={gameState} />
       </Box>
     </Box>
   );
