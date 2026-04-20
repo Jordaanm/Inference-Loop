@@ -3,6 +3,7 @@ import { Box, useApp, useInput } from 'ink';
 import { Section } from '../types';
 import { INITIAL_STATE } from '../game/state';
 import { useGameLoop } from '../hooks/useGameLoop';
+import { useTerminalSize } from '../hooks/useTerminalSize';
 import NotificationsBar from './NotificationsBar';
 import NavPanel from './NavPanel';
 import Dashboard from './Dashboard';
@@ -14,6 +15,7 @@ export default function App() {
   const { exit } = useApp();
   const [section, setSection] = useState<Section>('commissions');
   const [gameState, setGameState] = useState(INITIAL_STATE);
+  const { rows } = useTerminalSize();
 
   useGameLoop(setGameState);
 
@@ -25,9 +27,9 @@ export default function App() {
   });
 
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" height={rows}>
       <NotificationsBar />
-      <Box flexDirection="row">
+      <Box flexDirection="row" flexGrow={1} alignItems="stretch">
         <NavPanel activeSection={section} />
         <Box flexGrow={1} flexDirection="column" borderStyle="single">
           {section === 'commissions' && <CommissionsPanel />}
