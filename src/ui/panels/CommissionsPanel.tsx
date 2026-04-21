@@ -50,7 +50,7 @@ function BoardRow({
   const color = TYPE_COLORS[commission.type];
   const desc = selected
     ? commission.description.slice(scrollOffset, scrollOffset + descWidth).padEnd(descWidth)
-    : truncate(commission.description, descWidth);
+    : truncate(commission.description, descWidth).padEnd(descWidth);
   const reward = `$${commission.reward.toFixed(0).padStart(3)}`;
   const time = formatTimeLimit(commission.timeLimit);
   const urgent = commission.timeLimit < 60_000;
@@ -133,7 +133,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
             commission={c}
             selected={i === selectedIdx}
             scrollOffset={i === selectedIdx ? scrollOffset : 0}
-            descWidth={colWidth}
+            descWidth={descWidth}
           />
         ))}
       </Box>
