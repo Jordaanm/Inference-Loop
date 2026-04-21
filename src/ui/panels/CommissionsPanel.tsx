@@ -2,8 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { Commission, TYPE_COLORS, TYPE_LABELS } from '../../game/commission';
 import { MAX_ACTIVE } from '../../game/board';
+import { useTerminalSize } from '../../hooks/useTerminalSize';
 
-const DESC_WIDTH = 19;
+// Columns consumed by everything except the description field:
+//   NavPanel outer width (width={20})           : 20
+//   Dashboard outer width (width={22})          : 22
+//   Center panel border (1 left + 1 right)      :  2
+//   Center panel paddingX (1 left + 1 right)    :  2
+//   Row fixed: indicator+sp(2) [type ](7) sp+reward+sp+time(2+4+6=12) : 21
+//   Total                                       : 67
+const PANEL_OVERHEAD = 67;
+const MIN_DESC_WIDTH = 8;
+
 const SCROLL_START_DELAY_MS = 1200;
 const SCROLL_INTERVAL_MS = 150;
 
@@ -29,16 +39,18 @@ function BoardRow({
   commission,
   selected,
   scrollOffset,
+  descWidth,
 }: {
   commission: Commission;
   selected: boolean;
   scrollOffset: number;
+  descWidth: number;
 }) {
   const label = TYPE_LABELS[commission.type].padEnd(5);
   const color = TYPE_COLORS[commission.type];
   const desc = selected
-    ? commission.description.slice(scrollOffset, scrollOffset + DESC_WIDTH).padEnd(DESC_WIDTH)
-    : truncate(commission.description, DESC_WIDTH);
+    ? commission.description.slice(scrollOffset, scrollOffset + descWidth).padEnd(descWidth)
+    : truncate(commission.description, descWidth);
   const reward = `$${commission.reward.toFixed(0).padStart(3)}`;
   const time = formatTimeLimit(commission.timeLimit);
   const urgent = commission.timeLimit < 60_000;
@@ -56,6 +68,9 @@ function BoardRow({
 }
 
 export default function CommissionsPanel({ board, active, isActive, onClaim }: Props) {
+  const { columns } = useTerminalSize();
+  const descWidth = Math.max(MIN_DESC_WIDTH, columns - PANEL_OVERHEAD);
+
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -63,7 +78,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
   const selectedId = board[selectedIdx]?.id;
   const selectedDesc = board[selectedIdx]?.description ?? '';
 
-  // Reset scroll and restart animation whenever the focused item changes.
+  // Reset scroll and restart animation when the focused item or available width changes.
   useEffect(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -71,7 +86,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
     }
     setScrollOffset(0);
 
-    const maxOffset = selectedDesc.length - DESC_WIDTH;
+    const maxOffset = selectedDesc.length - descWidth;
     if (maxOffset <= 0) return;
 
     let offset = 0;
@@ -93,7 +108,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
         intervalRef.current = null;
       }
     };
-  }, [selectedIdx, selectedId]);
+  }, [selectedIdx, selectedId, descWidth]);
 
   useInput((input, key) => {
     if (key.upArrow) setSelectedIdx((i) => Math.max(0, i - 1));
@@ -117,6 +132,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
             commission={c}
             selected={i === selectedIdx}
             scrollOffset={i === selectedIdx ? scrollOffset : 0}
+            descWidth={descWidth}
           />
         ))}
       </Box>
@@ -130,7 +146,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
           <Box key={c.id}>
             <Text> </Text>
             <Text color={TYPE_COLORS[c.type]}>[{TYPE_LABELS[c.type].padEnd(5)}]</Text>
-            <Text> {truncate(c.description, 32)}</Text>
+            <Text> {truncate(c.description, descWidth + 13)}</Text>
             <Text color="green"> ${c.reward.toFixed(0)}</Text>
           </Box>
         ))}
