@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Text, useInput } from 'ink';
-import { Commission, TYPE_COLORS, TYPE_LABELS } from '../../game/commission';
+import { Commission, MAX_DESC_LENGTH, TYPE_COLORS, TYPE_LABELS } from '../../game/commission';
 import { MAX_ACTIVE } from '../../game/board';
 import { useTerminalSize } from '../../hooks/useTerminalSize';
 
@@ -70,6 +70,7 @@ function BoardRow({
 export default function CommissionsPanel({ board, active, isActive, onClaim }: Props) {
   const { columns } = useTerminalSize();
   const descWidth = Math.max(MIN_DESC_WIDTH, columns - PANEL_OVERHEAD);
+  const colWidth = Math.min(descWidth, MAX_DESC_LENGTH);
 
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -86,7 +87,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
     }
     setScrollOffset(0);
 
-    const maxOffset = selectedDesc.length - descWidth;
+    const maxOffset = selectedDesc.length - colWidth;
     if (maxOffset <= 0) return;
 
     let offset = 0;
@@ -108,7 +109,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
         intervalRef.current = null;
       }
     };
-  }, [selectedIdx, selectedId, descWidth]);
+  }, [selectedIdx, selectedId, colWidth]);
 
   useInput((input, key) => {
     if (key.upArrow) setSelectedIdx((i) => Math.max(0, i - 1));
@@ -132,7 +133,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
             commission={c}
             selected={i === selectedIdx}
             scrollOffset={i === selectedIdx ? scrollOffset : 0}
-            descWidth={descWidth}
+            descWidth={colWidth}
           />
         ))}
       </Box>
@@ -146,7 +147,7 @@ export default function CommissionsPanel({ board, active, isActive, onClaim }: P
           <Box key={c.id}>
             <Text> </Text>
             <Text color={TYPE_COLORS[c.type]}>[{TYPE_LABELS[c.type].padEnd(5)}]</Text>
-            <Text> {truncate(c.description, descWidth + 13)}</Text>
+            <Text> {truncate(c.description, colWidth + 13)}</Text>
             <Text color="green"> ${c.reward.toFixed(0)}</Text>
           </Box>
         ))}

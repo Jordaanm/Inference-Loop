@@ -97,6 +97,20 @@ export function generateCommission(
   };
 }
 
+function computeMaxDescLength(): number {
+  let max = 0;
+  for (const type of TYPES) {
+    for (const item of POOLS[type]) {
+      for (const template of TEMPLATES[type]) {
+        max = Math.max(max, template(item).length);
+      }
+    }
+  }
+  return max;
+}
+
+export const MAX_DESC_LENGTH = computeMaxDescLength();
+
 export const TYPE_LABELS: Record<CommissionType, string> = {
   writing: 'write',
   programming: 'code',
