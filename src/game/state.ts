@@ -1,6 +1,7 @@
 import { STARTING_DOLLARS, STARTING_TOKENS } from './constants';
 import { Commission } from './commission';
 import { initBoard } from './board';
+import { Agent, INITIAL_AGENT } from './agent';
 
 export interface Settings {
   timeScaleFactor: number;
@@ -13,6 +14,7 @@ export interface GameState {
   agentsWorking: number;
   board: Commission[];
   active: Commission[];
+  agent: Agent;
   settings: Settings;
 }
 
@@ -23,6 +25,7 @@ export const INITIAL_STATE: GameState = {
   agentsWorking: 0,
   board: initBoard(),
   active: [],
+  agent: INITIAL_AGENT,
   settings: {
     timeScaleFactor: 1,
   },
