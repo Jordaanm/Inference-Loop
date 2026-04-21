@@ -29,6 +29,13 @@ export default function App() {
     });
   }, []);
 
+  const handleSetTimeScale = useCallback((value: number) => {
+    setGameState((state) => ({
+      ...state,
+      settings: { ...state.settings, timeScaleFactor: value },
+    }));
+  }, []);
+
   const handleClaim = useCallback((id: string) => {
     setGameState((state) => {
       const result = claimCommission(state.board, state.active, id);
@@ -67,7 +74,13 @@ export default function App() {
               onAssign={handleAssign}
             />
           )}
-          {section === 'settings' && <SettingsPanel />}
+          {section === 'settings' && (
+            <SettingsPanel
+              timeScaleFactor={gameState.settings.timeScaleFactor}
+              isActive={section === 'settings'}
+              onSetFactor={handleSetTimeScale}
+            />
+          )}
         </Box>
         <Dashboard gameState={gameState} />
       </Box>
