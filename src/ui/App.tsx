@@ -3,6 +3,7 @@ import { Box, useApp, useInput } from 'ink';
 import { Section } from '../types';
 import { INITIAL_STATE } from '../game/state';
 import { claimCommission } from '../game/board';
+import { assignAgent, ModelTierId } from '../game/agent';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useTerminalSize } from '../hooks/useTerminalSize';
 import NotificationsBar from './NotificationsBar';
@@ -19,6 +20,14 @@ export default function App() {
   const { rows } = useTerminalSize();
 
   useGameLoop(setGameState);
+
+  const handleAssign = useCallback((commissionId: string, tierId: ModelTierId) => {
+    setGameState((state) => {
+      const result = assignAgent(state.agent, commissionId, tierId, state.active, state.tokens);
+      if (!result.success) return state;
+      return { ...state, agent: result.agent, tokens: result.tokens };
+    });
+  }, []);
 
   const handleClaim = useCallback((id: string) => {
     setGameState((state) => {
@@ -49,7 +58,15 @@ export default function App() {
               onClaim={handleClaim}
             />
           )}
-          {section === 'agents' && <AgentsPanel />}
+          {section === 'agents' && (
+            <AgentsPanel
+              agent={gameState.agent}
+              active={gameState.active}
+              tokens={gameState.tokens}
+              isActive={section === 'agents'}
+              onAssign={handleAssign}
+            />
+          )}
           {section === 'settings' && <SettingsPanel />}
         </Box>
         <Dashboard gameState={gameState} />
